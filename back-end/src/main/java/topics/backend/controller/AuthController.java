@@ -1,38 +1,44 @@
 package topics.backend.controller;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import topics.backend.dto.UserDTO;
-import topics.backend.service.UserService;
+import topics.backend.config.JwtService;
+import topics.backend.dto.LoginUserDTO;
+import topics.backend.dto.RegisterUserDTO;
+import topics.backend.model.User;
+import topics.backend.service.AuthenticationService;
+import topics.backend.response.LoginResponse;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController{
+  private final JwtService jwtService;
+  private final AuthenticationService authenticationService;
 
-  private final UserService userService;
-
-  @Autowired
-  public AuthController(UserService userService){
-    this.userService = userService;
+  public AuthController(JwtService jwtService, AuthenticationService authenticationService){
+    this.jwtService = jwtService;
+    this.authenticationService = authenticationService;
   }
 
-  @PostMapping("/register")
-  public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO){
-    UserDTO createdUser = userService.createUser(userDTO);
-    return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+  @PostMapping("/signup")
+  public ResponseEntity<User> register(@RequestBody RegisterUserDTO registerUserDTO){
+    User registeredUser = authenticationService.signup(registerUserDTO);
+    return ResponseEntity.ok(registeredUser);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<?> loginUser(@RequestBody UserDTO userDTO){
-    if(userService.authenticateUser(userDTO)){
-      return new ResponseEntity<>(HttpStatus.OK);
-    }
-    return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+  public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDTO loginUserDTO){
+    User authenticatedUser = authenticationService.authenticate(loginUserDTO);
+
+    String jwtToken = jwtService.generateToken(authenticatedUser);
+
+    LoginResponse loginResponse = new LoginResponse();
+    loginResponse.setToken(jwtToken);
+    loginResponse.setExpiresIn(jwtService.getExpirationTime());
+
+    return ResponseEntity.ok(loginResponse);
   }
 }
