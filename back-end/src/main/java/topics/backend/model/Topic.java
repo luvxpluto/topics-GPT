@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Entity
@@ -23,16 +24,20 @@ import lombok.NoArgsConstructor;
 public class Topic {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Getter
   private Long id;
 
   @Getter
+  @Setter
   @Column(nullable = false, unique = true)
   private String name;
 
   @Getter
+  @Setter
   @Column(nullable = false)
   private String description;
 
+  @Setter
   @ManyToOne
   @JoinColumn(name = "created_by", nullable = false)
   private User user;
