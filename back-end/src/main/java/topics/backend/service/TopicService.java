@@ -24,7 +24,7 @@ public class TopicService {
 
   @Transactional
   public TopicDTO createTopic(TopicDTO topicDTO, User currentUser) {
-    if(topicRepository.existsByNameAndUser(topicDTO.getName(), currentUser) != null) {
+    if(topicRepository.existsByNameAndUser(topicDTO.getName(), currentUser)) {
       throw new ResponseStatusException(HttpStatus.CONFLICT,"Topic already exists");
     }
     Topic topic = new Topic();

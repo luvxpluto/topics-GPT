@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface TopicRepository extends JpaRepository<Topic, Long> {
   List<Topic> findAllByUser(User user);
-  Topic existsByNameAndUser(String name, User user);
+  Boolean existsByNameAndUser(String name, User user);
 }
