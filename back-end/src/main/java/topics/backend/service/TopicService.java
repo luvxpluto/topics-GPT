@@ -1,6 +1,5 @@
 package topics.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 public class TopicService {
   private final TopicRepository topicRepository;
 
-  @Autowired
   public TopicService(TopicRepository topicRepository) {
     this.topicRepository = topicRepository;
   }
@@ -31,7 +29,6 @@ public class TopicService {
     topic.setName(topicDTO.getName());
     topic.setDescription(topicDTO.getDescription());
     topic.setUser(currentUser);
-    topicRepository.save(topic);
 
     Topic savedTopic = topicRepository.save(topic);
     return convertToDTO(savedTopic);
@@ -42,7 +39,7 @@ public class TopicService {
     return topics.stream().map(this::convertToDTO).collect(Collectors.toList());
   }
 
-  private  TopicDTO convertToDTO(Topic topic) {
+  private TopicDTO convertToDTO(Topic topic) {
     TopicDTO topicDTO = new TopicDTO();
     topicDTO.setId(topic.getId());
     topicDTO.setName(topic.getName());
