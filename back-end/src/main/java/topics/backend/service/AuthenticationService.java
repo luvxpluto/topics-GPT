@@ -1,9 +1,11 @@
 package topics.backend.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import topics.backend.dto.LoginUserDTO;
 import topics.backend.dto.RegisterUserDTO;
 import topics.backend.model.User;
@@ -15,7 +17,8 @@ public class AuthenticationService {
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
 
-  public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+  public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                               AuthenticationManager authenticationManager){
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.authenticationManager = authenticationManager;
@@ -32,6 +35,7 @@ public class AuthenticationService {
   public User authenticate(LoginUserDTO loginUserDTO) {
     authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(loginUserDTO.getEmail(), loginUserDTO.getPassword()));
-    return userRepository.findByEmail(loginUserDTO.getEmail()).orElseThrow();
+    return userRepository.findByEmail(loginUserDTO.getEmail())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
   }
 }
