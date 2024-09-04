@@ -12,4 +12,6 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
   Boolean existsByNameAndUser(String name, User user);
 
   Optional<Topic> findByName(String name);
+
+  Optional<Topic> findByIdAndUser(Long id, User user);
 }

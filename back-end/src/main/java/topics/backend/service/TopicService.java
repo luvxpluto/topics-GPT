@@ -1,5 +1,6 @@
 package topics.backend.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +23,10 @@ public class TopicService {
 
   @Transactional
   public TopicDTO createTopic(TopicDTO topicDTO, User currentUser) {
-    if(topicRepository.existsByNameAndUser(topicDTO.getName(), currentUser)) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT,"Topic already exists");
+    if (topicRepository.existsByNameAndUser(topicDTO.getName(), currentUser)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Topic already exists");
     }
+
     Topic topic = new Topic();
     topic.setName(topicDTO.getName());
     topic.setDescription(topicDTO.getDescription());
@@ -39,6 +41,37 @@ public class TopicService {
     return topics.stream().map(this::convertToDTO).collect(Collectors.toList());
   }
 
+  public TopicDTO getTopicById(Long id, User currentUser) {
+    Topic topic = topicRepository.findByIdAndUser(id, currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+    return convertToDTO(topic);
+  }
+
+  @Transactional
+  public TopicDTO updateTopic(TopicDTO topicDTO, User currentUser) {
+    Topic topic = topicRepository.findByIdAndUser(topicDTO.getId(), currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+
+
+    if (!topic.getName().equals(topicDTO.getName()) &&
+            topicRepository.existsByNameAndUser(topicDTO.getName(), currentUser)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Topic already exists");
+    }
+
+    topic.setName(topicDTO.getName());
+    topic.setDescription(topicDTO.getDescription());
+    Topic savedTopic = topicRepository.save(topic);
+    return convertToDTO(savedTopic);
+  }
+
+  @Transactional
+  public void deleteTopic(Long id, User currentUser) {
+    Topic topic = topicRepository.findByIdAndUser(id, currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+
+    topicRepository.delete(topic);
+  }
+
   private TopicDTO convertToDTO(Topic topic) {
     TopicDTO topicDTO = new TopicDTO();
     topicDTO.setId(topic.getId());
@@ -47,3 +80,4 @@ public class TopicService {
     return topicDTO;
   }
 }
+

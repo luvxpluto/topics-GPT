@@ -1,12 +1,13 @@
 package topics.backend.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 import topics.backend.dto.TopicDTO;
 import topics.backend.model.User;
 import topics.backend.service.TopicService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -19,19 +20,35 @@ public class TopicController {
     this.topicService = topicService;
   }
 
-  @PostMapping("/create")
-  public ResponseEntity<TopicDTO> createTopic(@RequestBody TopicDTO topicDTO){
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    User currentUser = (User) authentication.getPrincipal();
+  @PostMapping
+  public ResponseEntity<TopicDTO> createTopic(@RequestBody TopicDTO topicDTO, @AuthenticationPrincipal User currentUser){
     TopicDTO createdTopic = topicService.createTopic(topicDTO, currentUser);
-    return ResponseEntity.ok(createdTopic);
+    return ResponseEntity.status(HttpStatus.CREATED).body(createdTopic);
   }
 
-  @GetMapping("/all")
-  public ResponseEntity<List<TopicDTO>> getAllTopics(){
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    User currentUser = (User) authentication.getPrincipal();
+  @GetMapping
+  public ResponseEntity<List<TopicDTO>> getAllTopics(@AuthenticationPrincipal User currentUser){
     List<TopicDTO> topics = topicService.getAllTopicsByUser(currentUser);
     return ResponseEntity.ok(topics);
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<TopicDTO> getTopicById(@PathVariable Long id, @AuthenticationPrincipal User currentUser){
+    TopicDTO topic = topicService.getTopicById(id, currentUser);
+    return ResponseEntity.ok(topic);
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<TopicDTO> updateTopic(@PathVariable Long id, @RequestBody TopicDTO topicDTO,
+                                              @AuthenticationPrincipal User currentUser){
+    topicDTO.setId(id);
+    TopicDTO updatedTopic = topicService.updateTopic(topicDTO, currentUser);
+    return ResponseEntity.ok(updatedTopic);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteTopic(@PathVariable Long id, @AuthenticationPrincipal User currentUser){
+      topicService.deleteTopic(id, currentUser);
+      return ResponseEntity.noContent().build();
   }
 }
