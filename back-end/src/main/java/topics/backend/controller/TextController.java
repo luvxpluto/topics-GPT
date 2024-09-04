@@ -2,44 +2,58 @@ package topics.backend.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import topics.backend.dto.TextDTO;
 import topics.backend.model.Topic;
-import topics.backend.repository.TopicRepository;
+import topics.backend.model.User;
 import topics.backend.service.TextService;
+import topics.backend.service.TopicService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/text")
+@RequestMapping("/api/text")
 public class TextController {
   private final TextService textService;
-  private final TopicRepository topicRepository;
+  private final TopicService topicService;
 
-  public TextController(TextService textService, TopicRepository topicRepository) {
+  public TextController(TextService textService, TopicService topicService) {
     this.textService = textService;
-    this.topicRepository = topicRepository;
+    this.topicService = topicService;
   }
 
-  @PostMapping("/create")
-  public ResponseEntity<TextDTO> createText(TextDTO textDTO) {
-    Topic topic = topicRepository.findByName(textDTO.getTopicName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
-
+  @PostMapping
+  public ResponseEntity<TextDTO> createText(TextDTO textDTO, @AuthenticationPrincipal User currentUser) {
+    Topic topic = topicService.getTopicByName(textDTO.getTopicName(), currentUser);
     TextDTO createdText = textService.createText(textDTO, topic);
-    return ResponseEntity.ok(createdText);
+    return ResponseEntity.status(HttpStatus.CREATED).body(createdText);
   }
 
-  @GetMapping("/all")
-  public ResponseEntity<List<TextDTO>> getAllTextsByTopic(String topicName) {
-    Topic topic = topicRepository.findByName(topicName)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
-
+  @GetMapping
+  public ResponseEntity<List<TextDTO>> getAllTextsByTopic(String topicName, @AuthenticationPrincipal User currentUser) {
+    Topic topic = topicService.getTopicByName(topicName, currentUser);
     List<TextDTO> texts = textService.getAllTextsByTopic(topic);
     return ResponseEntity.ok(texts);
   }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<TextDTO> getTextById(@PathVariable Long id) {
+    TextDTO text = textService.getTextById(id);
+    return ResponseEntity.ok(text);
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<TextDTO> updateText(@PathVariable Long id, TextDTO textDTO) {
+    textDTO.setId(id);
+    TextDTO updatedText = textService.updateText(textDTO);
+    return ResponseEntity.ok(updatedText);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteText(@PathVariable Long id) {
+    textService.deleteText(id);
+    return ResponseEntity.noContent().build();
+  }
+
 }

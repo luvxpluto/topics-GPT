@@ -12,7 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/topics")
+@RequestMapping("/api/topics")
 public class TopicController {
   private final TopicService topicService;
 

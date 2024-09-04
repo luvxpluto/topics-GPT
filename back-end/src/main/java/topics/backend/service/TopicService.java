@@ -47,6 +47,11 @@ public class TopicService {
     return convertToDTO(topic);
   }
 
+  public Topic getTopicByName(String name, User currentUser) {
+    return topicRepository.findByNameAndUser(name, currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+  }
+
   @Transactional
   public TopicDTO updateTopic(TopicDTO topicDTO, User currentUser) {
     Topic topic = topicRepository.findByIdAndUser(topicDTO.getId(), currentUser)

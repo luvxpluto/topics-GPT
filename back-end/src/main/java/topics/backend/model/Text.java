@@ -23,11 +23,10 @@ public class Text {
   @JoinColumn(name = "topic_name", nullable = false)
   private Topic topic;
 
+  @Column(nullable = false)
   private int wordsCount;
 
-  public Text(String content, Topic topic) {
-    this.content = content;
-    this.topic = topic;
-    this.wordsCount = content.split("\\s+").length;
+  public int countWords() {
+    return content.split("\\s+").length;
   }
 }
