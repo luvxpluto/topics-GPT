@@ -24,14 +24,14 @@ public class TextController {
   }
 
   @PostMapping
-  public ResponseEntity<TextDTO> createText(TextDTO textDTO, @AuthenticationPrincipal User currentUser) {
+  public ResponseEntity<TextDTO> createText(@RequestBody TextDTO textDTO, @AuthenticationPrincipal User currentUser) {
     Topic topic = topicService.getTopicByName(textDTO.getTopicName(), currentUser);
     TextDTO createdText = textService.createText(textDTO, topic);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdText);
   }
 
-  @GetMapping
-  public ResponseEntity<List<TextDTO>> getAllTextsByTopic(String topicName, @AuthenticationPrincipal User currentUser) {
+  @GetMapping("topic/{topicName}")
+  public ResponseEntity<List<TextDTO>> getAllTextsByTopic(@PathVariable String topicName, @AuthenticationPrincipal User currentUser) {
     Topic topic = topicService.getTopicByName(topicName, currentUser);
     List<TextDTO> texts = textService.getAllTextsByTopic(topic);
     return ResponseEntity.ok(texts);
@@ -44,16 +44,17 @@ public class TextController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<TextDTO> updateText(@PathVariable Long id, TextDTO textDTO) {
+  public ResponseEntity<TextDTO> updateText(@PathVariable Long id, @RequestBody TextDTO textDTO, @AuthenticationPrincipal User currentUser) {
+    Topic topic = topicService.getTopicByName(textDTO.getTopicName(), currentUser);
     textDTO.setId(id);
-    TextDTO updatedText = textService.updateText(textDTO);
+    TextDTO updatedText = textService.updateText(textDTO, topic);
     return ResponseEntity.ok(updatedText);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteText(@PathVariable Long id) {
     textService.deleteText(id);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok().build();
   }
 
 }

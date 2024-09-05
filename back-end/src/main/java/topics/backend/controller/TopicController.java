@@ -49,6 +49,6 @@ public class TopicController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteTopic(@PathVariable Long id, @AuthenticationPrincipal User currentUser){
       topicService.deleteTopic(id, currentUser);
-      return ResponseEntity.noContent().build();
+      return ResponseEntity.ok().build();
   }
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import topics.backend.dto.TextDTO;
-import topics.backend.dto.TopicDTO;
 import topics.backend.model.Text;
 import topics.backend.model.Topic;
 import topics.backend.repository.TextRepository;
@@ -25,7 +24,7 @@ public class TextService {
   public TextDTO createText(TextDTO textDTO, Topic topic) {
     Text text = new Text();
     text.setContent(textDTO.getContent());
-    text.setWordsCount(textDTO.getWordsCount());
+    text.setWordsCount(text.countWords());
     text.setTopic(topic);
     Text savedText = textRepository.save(text);
     return convertToDTO(savedText);
@@ -43,9 +42,10 @@ public class TextService {
   }
 
   @Transactional
-  public TextDTO updateText(TextDTO textDTO) {
+  public TextDTO updateText(TextDTO textDTO, Topic topic) {
     Text text = textRepository.findById(textDTO.getId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Text not found"));
+    text.setTopic(topic);
     text.setContent(textDTO.getContent());
     text.setWordsCount(text.countWords());
     Text updatedText = textRepository.save(text);
@@ -64,6 +64,7 @@ public class TextService {
     textDTO.setId(text.getId());
     textDTO.setContent(text.getContent());
     textDTO.setWordsCount(text.getWordsCount());
+    textDTO.setTopicName(text.getTopic().getName());
     return textDTO;
   }
 }
