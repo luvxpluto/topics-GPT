@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import topics.backend.dto.TopicDTO;
 import topics.backend.model.User;
 import topics.backend.service.TopicService;
@@ -24,6 +25,32 @@ public class TopicController {
   public ResponseEntity<TopicDTO> createTopic(@RequestBody TopicDTO topicDTO, @AuthenticationPrincipal User currentUser){
     TopicDTO createdTopic = topicService.createTopic(topicDTO, currentUser);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdTopic);
+  }
+
+  @PostMapping("/summary/{id}")
+  public ResponseEntity<TopicDTO> createResumen(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+    try {
+      topicService.generateSummary(id, currentUser);
+      return ResponseEntity.ok().build();
+    } catch (ResponseStatusException e) {
+      // This will handle the NOT_FOUND and INTERNAL_SERVER_ERROR cases
+      throw e;
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", e);
+    }
+  }
+
+  @PostMapping("/qa/{id}")
+  public ResponseEntity<TopicDTO> createQA(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+    try {
+      topicService.generateQA(id, currentUser);
+      return ResponseEntity.ok().build();
+    } catch (ResponseStatusException e) {
+      // This will handle the NOT_FOUND and INTERNAL_SERVER_ERROR cases
+      throw e;
+    } catch (Exception e) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", e);
+    }
   }
 
   @GetMapping

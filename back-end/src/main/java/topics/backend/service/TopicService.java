@@ -1,10 +1,11 @@
 package topics.backend.service;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import topics.backend.exceptions.ContentGenerationException;
+import topics.backend.model.Text;
 import topics.backend.model.Topic;
 import topics.backend.model.User;
 import topics.backend.repository.TopicRepository;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 @Service
 public class TopicService {
   private final TopicRepository topicRepository;
+  private final ContentService contentService;
 
-  public TopicService(TopicRepository topicRepository) {
+  public TopicService(TopicRepository topicRepository, ContentService contentService) {
     this.topicRepository = topicRepository;
+    this.contentService = contentService;
   }
 
   @Transactional
@@ -75,6 +78,38 @@ public class TopicService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
 
     topicRepository.delete(topic);
+  }
+
+  public void generateSummary(Long id, User currentUser) {
+    Topic topic = topicRepository.findByIdAndUser(id, currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+
+    List<Text> texts = topic.getTexts();
+    String content = texts.stream().map(Text::getContent).collect(Collectors.joining("\n"));
+    String prompt = "Please summarize the following text in markdown format: " + content;
+
+    try {
+      contentService.generateAndSendContent(prompt,"summary",currentUser.getEmail());
+    } catch (ContentGenerationException e) {
+      // Optionally rethrow as a different exception if needed
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating summary", e);
+    }
+  }
+
+  public void generateQA(Long id, User currentUser) {
+    Topic topic = topicRepository.findByIdAndUser(id, currentUser)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Topic not found"));
+
+    List<Text> texts = topic.getTexts();
+    String content = texts.stream().map(Text::getContent).collect(Collectors.joining("\n"));
+    String prompt = "Please generate questions and answers of the following text in markdown format: " + content;
+
+    try {
+      contentService.generateAndSendContent(prompt,"Q&A",currentUser.getEmail());
+    } catch (ContentGenerationException e) {
+      // Optionally rethrow as a different exception if needed
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating summary", e);
+    }
   }
 
   private TopicDTO convertToDTO(Topic topic) {

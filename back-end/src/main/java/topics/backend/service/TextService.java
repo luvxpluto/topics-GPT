@@ -59,6 +59,7 @@ public class TextService {
     textRepository.delete(text);
   }
 
+
   private TextDTO convertToDTO(Text text) {
     TextDTO textDTO = new TextDTO();
     textDTO.setId(text.getId());

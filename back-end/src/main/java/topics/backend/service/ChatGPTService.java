@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Service
 public class ChatGPTService {
   private final String apiKey = System.getenv("OPENAI_API_KEY");
-  private final String model = "gpt-4-mini";
+  private final String model = "gpt-4o-mini";
 
   private static final String URL = "https://api.openai.com/v1/chat/completions";
   private static final ObjectMapper objectMapper = new ObjectMapper();

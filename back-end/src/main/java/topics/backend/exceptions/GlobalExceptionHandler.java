@@ -2,6 +2,7 @@ package topics.backend.exceptions;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.server.ResponseStatusException;
+import java.io.IOException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,6 +53,18 @@ public class GlobalExceptionHandler {
       status = HttpStatus.NOT_FOUND;
       message = "Resource not found";
       description = "The requested resource was not found.";
+    } else if (exception instanceof ContentGenerationException) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = "Content generation error";
+      description = exception.getMessage();
+    } else if (exception instanceof MessagingException) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = "Email sending error";
+      description = "Error while sending email: " + exception.getMessage();
+    } else if (exception instanceof IOException) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = "I/O error";
+      description = "I/O Error: " + exception.getMessage();
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = "Internal server error";
@@ -68,8 +82,12 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException ex) {
-    ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(ex.getStatusCode().value()), ex.getReason());
+    ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
     errorDetail.setProperty("description", ex.getReason());
+
+    // Log the exception stack trace
+    logger.error("ResponseStatusException occurred: ", ex);
+
     return ResponseEntity.status(ex.getStatusCode()).body(errorDetail);
   }
 }
